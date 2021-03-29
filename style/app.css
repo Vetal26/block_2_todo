@@ -1,0 +1,10 @@
+.draggable {
+    cursor: move;
+    user-select: none;
+}
+
+.placeholder {
+    background-color: #edf2f7;
+    border: 2px dashed #cbd5e0;
+}
+
