@@ -24,22 +24,27 @@ export default class TodoList {
         return todo;
     }
 
-    completeAll() {
+    toggleAll() {
         for (let todo of this.todos) {
-            todo.isDone = true;
+            todo.markDone();
         }
     }
 
-    removeAll() {
+    removeAllCopleted() {
         for (let todo of this.todos) {
-            this.removeTodo(todo.id)
+            if (todo.isDone){
+                this.removeTodo(todo.id);
+            }
         }
     }
 
     toggleTodo(id) {
         let todoIdx = this.todos.findIndex(t => t.id === id);
-        let todo = this.todos[todoIdx];
-        todo.isDone = !todo.isDone;
+        if (this.todos[todoIdx].isDone) {
+            this.todos[todoIdx].markNotDone();
+        } else {
+            this.todos[todoIdx].markDone();
+        }
     }
 
     filterTodos(filter = 'all') {
@@ -58,9 +63,5 @@ export default class TodoList {
     
     getActiveTodo() {
         return this.todoList.filter((todo) => todo.isDone === false);
-    }
-
-    getIndex(id) {
-        return this.todos.findIndex(t => t.id === id);
     }
 }

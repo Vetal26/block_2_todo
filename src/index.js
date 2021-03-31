@@ -12,7 +12,7 @@ function todosFromLocal() {
     let localList = JSON.parse(localStorage.getItem('TodoList'));
     if (localList){
         for (let todo of localList.todos) {
-            saveTodo(todo);
+            list.addTodo(new Todo(todo));
         }
     }
     render();
@@ -22,19 +22,18 @@ function addTodoFromInput() {
     let input = document.querySelector('#todo-input');
     let todo = input.value;
     input.value = '';
-    saveTodo(new Todo(todo));
+    list.addTodo(new Todo({title: todo}));
     render();
 }
 
-function saveTodo(todo) {
-    list.addTodo(todo);
-}
-
 function handlerRemove(e) {
-    let elem = e.target.parentNode;
-    list.removeTodo(+elem.getAttribute('id'));
-    elem.remove();
-    saveLocal();
+    let isDelete = confirm('Delete current Todo?')
+    if (isDelete) {
+        let elem = e.target.parentNode;
+        list.removeTodo(+elem.getAttribute('id'));
+        elem.remove();
+        saveLocal();
+    }
 }
 
 function render() {
@@ -59,7 +58,7 @@ function render() {
         btnDelete.innerHTML = 'x'
         li.append(input, `${todo.title}`, btnDelete)
         li.id = todo.id;
-        ul.prepend(li);
+        ul.append(li);
     }
     saveLocal();
 }
@@ -69,23 +68,30 @@ function toggle(e) {
     render();
 }
 
-function toggleAll() {
+function toggleAllTodo() {
     let elems = document.querySelectorAll('input.status');
     for (elem of elems) {
         elem.checked = true;
     }
-    list.completeAll();
+    list.toggleAll();
     render();
 }
 
 function filterTodoList(e) {
     filterTodo = e.target.getAttribute('id');
+    let btnActiveOld = document.querySelector('.active');
+    btnActiveOld.classList.remove('active');
+    let btnActive = document.getElementById(filterTodo);
+    btnActive.classList.add('active');
     render();
 }
 
-function deleteAll() {
-    list.removeAll();
-    render();
+function deleteCompleted() {
+    let isDelete = confirm('Delete completed Todo(s)?')
+    if (isDelete) {
+        list.removeAllCopleted();
+        render();
+    }
 }
 
 function saveLocal() {
@@ -235,7 +241,7 @@ document.addEventListener('click', function() {
 
 TODO_ADD.addEventListener('click', addTodoFromInput);
 FILTER.addEventListener('click', filterTodoList);
-TODO_ALL_COMPLETED.addEventListener('click', toggleAll);
-TODOS_DESTROY.addEventListener('click', deleteAll);
+TODO_ALL_COMPLETED.addEventListener('click', toggleAllTodo);
+TODOS_DESTROY.addEventListener('click', deleteCompleted);
 
 todosFromLocal();
