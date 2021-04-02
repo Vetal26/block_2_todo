@@ -24,10 +24,17 @@ export default class TodoList {
         return todo;
     }
 
-    toggleAll() {
-        for (let todo of this.todos) {
-            todo.markDone();
+    toggleAll(bool) {
+        if (bool) {
+            for (let todo of this.todos) {
+                todo.markDone();
+            }
+        } else {
+            for (let todo of this.todos) {
+                todo.markNotDone();
+            }
         }
+        
     }
 
     removeAllCopleted() {

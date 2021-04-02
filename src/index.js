@@ -6,7 +6,9 @@ let filterTodo = 'all';
 const TODO_ADD = document.getElementById('todo-add');
 const FILTER = document.getElementById('filter');
 const TODO_ALL_COMPLETED = document.getElementById('todo-all-completed');
+const TODO_ALL_ACTIVE = document.getElementById('todo-all-active')
 const TODOS_DESTROY = document.getElementById('todos-destroy');
+const TODOS_LIST = document.getElementById('list')
 
 function todosFromLocal() {
     let localList = JSON.parse(localStorage.getItem('TodoList'));
@@ -68,12 +70,21 @@ function toggle(e) {
     render();
 }
 
-function toggleAllTodo() {
+function completeAllTodo() {
     let elems = document.querySelectorAll('input.status');
     for (elem of elems) {
         elem.checked = true;
     }
-    list.toggleAll();
+    list.toggleAll(true);
+    render();
+}
+
+function activeAllTodo() {
+    let elems = document.querySelectorAll('input.status');
+    for (elem of elems) {
+        elem.checked = false;
+    }
+    list.toggleAll(false);
     render();
 }
 
@@ -111,11 +122,8 @@ function updateIndexTodo(currentElem, nextElem) {
     saveLocal()
 }
 
-
-
-document.addEventListener('click', function() {
-    // Query the list element
-    const list = document.getElementById('list');
+function dragAndDrop() {
+    const listTodo = document.getElementById('list');
 
     let draggingEle;
     let placeholder;
@@ -147,6 +155,7 @@ document.addEventListener('click', function() {
     };
 
     const mouseDownHandler = function(e) {
+        e.stopPropagation();
         draggingEle = e.target;
 
         // Calculate the mouse position
@@ -216,32 +225,36 @@ document.addEventListener('click', function() {
         // Remove the placeholder
         placeholder && placeholder.parentNode.removeChild(placeholder);
 
-        const nextEle = draggingEle.nextElementSibling;
-        updateIndexTodo(draggingEle, nextEle);
-
         draggingEle.style.removeProperty('top');
         draggingEle.style.removeProperty('left');
         draggingEle.style.removeProperty('position');
+
+        const nextEle = draggingEle.nextElementSibling;
+        updateIndexTodo(draggingEle, nextEle);
 
         x = null;
         y = null;
         draggingEle = null;
         isDraggingStarted = false;
 
+       
         // Remove the handlers of `mousemove` and `mouseup`
         document.removeEventListener('mousemove', mouseMoveHandler);
         document.removeEventListener('mouseup', mouseUpHandler);
     };
 
     // Query all items
-    [].slice.call(list.querySelectorAll('.draggable')).forEach(function(item) {
+    console.log(list)
+    list.todos.slice.call(listTodo.querySelectorAll('.draggable')).forEach(function(item) {
         item.addEventListener('mousedown', mouseDownHandler);
     });
-});
+}
 
+TODOS_LIST.addEventListener('click', dragAndDrop);
 TODO_ADD.addEventListener('click', addTodoFromInput);
 FILTER.addEventListener('click', filterTodoList);
-TODO_ALL_COMPLETED.addEventListener('click', toggleAllTodo);
+TODO_ALL_COMPLETED.addEventListener('click', completeAllTodo);
 TODOS_DESTROY.addEventListener('click', deleteCompleted);
+TODO_ALL_ACTIVE.addEventListener('click', activeAllTodo)
 
 todosFromLocal();

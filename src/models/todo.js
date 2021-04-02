@@ -3,7 +3,7 @@ import getRandomIntInclusive from '../utils'
 export default class Todo {
     constructor(todo) {
         this.title = todo.title;
-        this.id = todo.id ? todo.id : this.newId();
+        this.id = todo?.id ? todo.id : this.newId();
         this.isDone = todo?.isDone ? todo.isDone : false;
     }
 
