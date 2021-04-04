@@ -8,7 +8,7 @@ const FILTER = document.getElementById('filter');
 const TODO_ALL_COMPLETED = document.getElementById('todo-all-completed');
 const TODO_ALL_ACTIVE = document.getElementById('todo-all-active')
 const TODOS_DESTROY = document.getElementById('todos-destroy');
-const TODOS_LIST = document.getElementById('list')
+const TODOS_LIST = document.getElementById('list');
 
 function todosFromLocal() {
     let localList = JSON.parse(localStorage.getItem('TodoList'));
@@ -109,25 +109,30 @@ function saveLocal() {
     localStorage.setItem('TodoList', JSON.stringify(list));
 }
 
-function updateIndexTodo(currentElem, nextElem) {
+function updateIndexTodo(currentElem, prevElem) {
     let currentTodoIdx = list.todos.findIndex(t => t.id === +currentElem.getAttribute('id'));
     let nextTodoIdx;
     let currentTodo = list.todos.splice(currentTodoIdx, 1);
-    if (nextElem) {
-        nextTodoIdx = list.todos.findIndex(t => t.id === +nextElem.getAttribute('id'));
+    if (prevElem) {
+        nextTodoIdx = list.todos.findIndex(t => t.id === +prevElem.getAttribute('id'));
         list.todos.splice(nextTodoIdx + 1, 0, currentTodo[0]);
-    } else if (!nextElem) {
+    } else if (!prevElem) {
         list.todos.unshift(currentTodo[0]);
     }
     saveLocal()
 }
 
-function dragAndDrop() {
+function dragAndDrop(e) {
     const listTodo = document.getElementById('list');
+    if (e.target.type === 'checkbox' || e.target.type === 'button' || e.target.type === 'input' ) {
+        return;
+    }
 
     let draggingEle;
     let placeholder;
     let isDraggingStarted = false;
+    let oldChek;
+    let oldBtn;
 
     // The current position of mouse relative to the dragging element
     let x = 0;
@@ -157,6 +162,10 @@ function dragAndDrop() {
     const mouseDownHandler = function(e) {
         e.stopPropagation();
         draggingEle = e.target;
+        oldChek = draggingEle.querySelector('input');
+        oldBtn = draggingEle.querySelector('button');
+        draggingEle.removeChild(oldBtn);
+        draggingEle.removeChild(oldChek);
 
         // Calculate the mouse position
         const rect = draggingEle.getBoundingClientRect();
@@ -229,8 +238,12 @@ function dragAndDrop() {
         draggingEle.style.removeProperty('left');
         draggingEle.style.removeProperty('position');
 
-        const nextEle = draggingEle.nextElementSibling;
-        updateIndexTodo(draggingEle, nextEle);
+
+
+        const prevEle = draggingEle.previousElementSibling;
+        draggingEle.prepend(oldChek);
+        draggingEle.append(oldBtn);
+        updateIndexTodo(draggingEle, prevEle);
 
         x = null;
         y = null;
@@ -244,8 +257,8 @@ function dragAndDrop() {
     };
 
     // Query all items
-    console.log(list)
     list.todos.slice.call(listTodo.querySelectorAll('.draggable')).forEach(function(item) {
+
         item.addEventListener('mousedown', mouseDownHandler);
     });
 }

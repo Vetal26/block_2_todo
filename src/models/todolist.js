@@ -71,4 +71,8 @@ export default class TodoList {
     getActiveTodo() {
         return this.todoList.filter((todo) => todo.isDone === false);
     }
+
+    changeOrder() {
+        
+    }
 }
