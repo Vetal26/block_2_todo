@@ -1,3 +1,6 @@
+import Todo from './todo';
+import render from '../index';
+
 export default class TodoList {
     constructor() {
         this.todos = [];
@@ -8,6 +11,17 @@ export default class TodoList {
     }
 
     addTodo(todo) {
+        fetch('http://localhost:3333/todos', {
+            method: 'post',
+            body: JSON.stringify(todo),
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json()
+        .then((json) => console.log(json))
+        .catch(err => console.log(err)));
         this.todos.push(todo);
     }
 
@@ -20,7 +34,15 @@ export default class TodoList {
         
         let todo = this.todos[todoIdx];
         this.todos = [...this.todos.slice(0, todoIdx), ...this.todos.slice(todoIdx + 1)];
-        
+        fetch('http://localhost:3333/todos/id', {
+            method: 'delete',
+            body: JSON.stringify([todoIdx]),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then((json) => console.log(json));
         return todo;
     }
 
@@ -34,7 +56,14 @@ export default class TodoList {
                 todo.markNotDone();
             }
         }
-        
+        fetch('http://localhost:3333/todos', {
+                method: 'put',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([bool])
+            }).then(response => response.json())
+            .then((json) => console.log(json));
     }
 
     removeAllCopleted() {
@@ -52,6 +81,14 @@ export default class TodoList {
         } else {
             this.todos[todoIdx].markDone();
         }
+        fetch('http://localhost:3333/todos/id', {
+                method: 'put',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([id])
+            }).then(response => response.json())
+            .then((json) => console.log(json));
     }
 
     filterTodos(filter = 'all') {
@@ -72,7 +109,17 @@ export default class TodoList {
         return this.todoList.filter((todo) => todo.isDone === false);
     }
 
-    changeOrder() {
-        
+    todoFromServer(){
+        fetch('http://localhost:3333/todos')
+            .then(response => response.json())
+            .then(json => {
+                for (let todo of json.todos) {
+                    this.todos.push(new Todo(todo));
+                }
+                render();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
     }
 }

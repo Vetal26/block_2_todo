@@ -1,5 +1,6 @@
 import TodoList from './models/todolist'; 
 import Todo from './models/todo';
+import config from './config';
 
 let list = new TodoList();
 let filterTodo = 'all'; 
@@ -34,11 +35,10 @@ function handlerRemove(e) {
         let elem = e.target.parentNode;
         list.removeTodo(+elem.getAttribute('id'));
         elem.remove();
-        saveLocal();
     }
 }
 
-function render() {
+export default function render() {
     let ul = document.querySelector('ul#list');
     let todos = list.filterTodos(filterTodo);
     while (ul.firstChild) {
@@ -62,7 +62,6 @@ function render() {
         li.id = todo.id;
         ul.append(li);
     }
-    saveLocal();
 }
 
 function toggle(e) {
@@ -119,7 +118,6 @@ function updateIndexTodo(currentElem, prevElem) {
     } else if (!prevElem) {
         list.todos.unshift(currentTodo[0]);
     }
-    saveLocal()
 }
 
 function dragAndDrop(e) {
@@ -270,4 +268,4 @@ TODO_ALL_COMPLETED.addEventListener('click', completeAllTodo);
 TODOS_DESTROY.addEventListener('click', deleteCompleted);
 TODO_ALL_ACTIVE.addEventListener('click', activeAllTodo)
 
-todosFromLocal();
+list.todoFromServer();
