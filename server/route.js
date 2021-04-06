@@ -1,9 +1,6 @@
-//global modules
 const express = require('express');
 const fs = require('fs');
 const bodyParser = require('body-parser');
-
-//rest code...
 const router = express.Router();
 
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -20,32 +17,33 @@ router.get('/todos', (req, res) => {
 
 router.post('/todos', (req, res) => {
   fs.readFile('./data/todos.json', (err, data) => {
-    if (err) {
-      throw err;
-    }
+    if (err) throw err;
     let content = JSON.parse(data);
     content.todos.push(req.body);
     fs.writeFile('./data/todos.json', JSON.stringify(content), (err) => {
       if (err) throw err;
       console.log("JSON data is saved.");
+      res.status(200).end();
     });
   });
 });
 
-router.delete('/todos/id', (req, res) => {
+router.delete('/todos', (req, res) => {
   fs.readFile('./data/todos.json', (err, data) => {
     if (err) {
       throw err;
     }
     let content = JSON.parse(data);
-    const idToDelete = req.body;
-    content.todos.splice(idToDelete, 1);
-    console.log(content)
+    for (id of req.body) {
+      let idx = content.todos.findIndex(t => t.id === id);
+      content.todos.splice(idx, 1);
+    }
     fs.writeFile('./data/todos.json', JSON.stringify(content),  function(err) {
       if (err) {
         return console.error(err);
       }});
   });
+  res.status(200).end();
 });
 
 router.put('/todos/id', (req, res) => {
@@ -64,6 +62,7 @@ router.put('/todos/id', (req, res) => {
         return console.error(err);
       }});
   });
+  res.status(200).end();
 });
 
 router.put('/todos', (req, res) => {
@@ -71,16 +70,17 @@ router.put('/todos', (req, res) => {
     if (err) {
       throw err;
     }
+    console.log(req.body)
     let content = JSON.parse(data);
-
     content.todos.forEach(todo => {
-      todo.isDone = !todo.isDone
+      todo.isDone = req.body[0];
     });
     fs.writeFile('./data/todos.json', JSON.stringify(content),  function(err) {
       if (err) {
         return console.error(err);
       }});
   });
+  res.status(200).end();
 })
 
 module.exports = router;

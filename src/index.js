@@ -70,20 +70,19 @@ function toggle(e) {
 }
 
 function completeAllTodo() {
-    let elems = document.querySelectorAll('input.status');
-    for (elem of elems) {
-        elem.checked = true;
-    }
-    list.toggleAll(true);
-    render();
+    toggleAlltodo(true);
 }
 
 function activeAllTodo() {
+    toggleAlltodo(false);
+}
+
+function toggleAlltodo(bool) {
     let elems = document.querySelectorAll('input.status');
     for (elem of elems) {
-        elem.checked = false;
+        elem.checked = bool;
     }
-    list.toggleAll(false);
+    list.toggleAll(bool);
     render();
 }
 
@@ -99,7 +98,7 @@ function filterTodoList(e) {
 function deleteCompleted() {
     let isDelete = confirm('Delete completed Todo(s)?')
     if (isDelete) {
-        list.removeAllCopleted();
+        list.removeCopleted();
         render();
     }
 }

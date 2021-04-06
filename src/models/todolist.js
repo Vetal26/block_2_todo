@@ -19,9 +19,8 @@ export default class TodoList {
                 'Content-Type': 'application/json'
             },
         })
-        .then(response => response.json()
-        .then((json) => console.log(json))
-        .catch(err => console.log(err)));
+        .then(response => response.json())
+        .then((json) => console.log(json));
         this.todos.push(todo);
     }
 
@@ -34,7 +33,7 @@ export default class TodoList {
         
         let todo = this.todos[todoIdx];
         this.todos = [...this.todos.slice(0, todoIdx), ...this.todos.slice(todoIdx + 1)];
-        fetch('http://localhost:3333/todos/id', {
+        fetch('http://localhost:3333/todos', {
             method: 'delete',
             body: JSON.stringify([todoIdx]),
             headers: {
@@ -66,12 +65,23 @@ export default class TodoList {
             .then((json) => console.log(json));
     }
 
-    removeAllCopleted() {
+    removeCopleted() {
+        let idstodos = [];
         for (let todo of this.todos) {
             if (todo.isDone){
-                this.removeTodo(todo.id);
+                this.removeTodo(todo);
+                idstodos.push(todo.id)
             }
         }
+        fetch('http://localhost:3333/todos', {
+            method: 'delete',
+            body: JSON.stringify(todos),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then((json) => console.log(json));
     }
 
     toggleTodo(id) {
