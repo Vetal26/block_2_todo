@@ -7,6 +7,10 @@ export default class Todo {
         this.isDone = todo?.isDone ? todo.isDone : false;
     }
 
+    getTodoItem(key) {
+        return this[key];
+    }
+
     markDone() {
         this.isDone = true;
     }

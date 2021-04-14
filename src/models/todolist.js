@@ -1,5 +1,5 @@
 import Todo from './todo';
-import render from '../index';
+import {config} from '../config';
 
 export default class TodoList {
     constructor() {
@@ -10,42 +10,62 @@ export default class TodoList {
         return this.todos;
     }
 
-    addTodo(todo) {
-        fetch('http://localhost:3333/todos', {
-            method: 'post',
+    async todoFromServer() {
+        const todolst = await fetch(`http://${config.development.host}:${config.development.port}/todos`)
+            .then(response => response.json())
+            .catch(error => console.error('Error:', error));
+            
+        todolst.todos.forEach(todo => {
+            this.todos.push(new Todo(todo));
+        });
+    }
+
+    async addTodo(todo) {
+        await fetch(`http://${config.development.host}:${config.development.port}/todos`, {
+            method: 'POST',
             body: JSON.stringify(todo),
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Content-Type': 'application/json'
             },
         })
-        .then(response => response.json())
-        .then((json) => console.log(json));
+        .then(response => response.text())
+        .catch(error => console.error('Error:', error));
         this.todos.push(todo);
     }
 
-    removeTodo(id) {
+    async removeTodo(id) {
         let todoIdx = this.todos.findIndex(t => t.id === id);
         if (todoIdx === -1) {
             console.log('Nothing to remove!');
             return;
         }
-        
-        let todo = this.todos[todoIdx];
-        this.todos = [...this.todos.slice(0, todoIdx), ...this.todos.slice(todoIdx + 1)];
-        fetch('http://localhost:3333/todos', {
-            method: 'delete',
-            body: JSON.stringify([todoIdx]),
+
+        await fetch(`http://${config.development.host}:${config.development.port}/todos/${id}`, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => response.json())
-        .then((json) => console.log(json));
+        .then(response => response.text())
+        .catch(error => console.error('Error:', error));;
+ 
+        let todo = this.todos[todoIdx];
+        this.todos = [...this.todos.slice(0, todoIdx), ...this.todos.slice(todoIdx + 1)];
         return todo;
     }
 
-    toggleAll(bool) {
+    async toggleAll(bool) {
+        await fetch(`http://${config.development.host}:${config.development.port}/todos`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([bool])
+            })
+            .then(response => response.text())
+            .catch(error => console.error('Error:', error));
+        
         if (bool) {
             for (let todo of this.todos) {
                 todo.markDone();
@@ -55,53 +75,43 @@ export default class TodoList {
                 todo.markNotDone();
             }
         }
-        fetch('http://localhost:3333/todos', {
-                method: 'put',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify([bool])
-            }).then(response => response.json())
-            .then((json) => console.log(json));
     }
 
-    removeCopleted() {
+    async removeCopleted() {
         let idstodos = [];
-        for (let todo of this.todos) {
-            if (todo.isDone){
-                this.removeTodo(todo);
-                idstodos.push(todo.id)
-            }
+        for (let todo of this.getCompletedTodo()) {
+            idstodos.push(todo.getTodoItem('id'));  
         }
-        fetch('http://localhost:3333/todos', {
-            method: 'delete',
-            body: JSON.stringify(todos),
+        await fetch(`http://${config.development.host}:${config.development.port}/todos`, {
+            method: 'DELETE',
+            body: JSON.stringify(idstodos),
             headers: {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => response.json())
-        .then((json) => console.log(json));
+        .then(response => response.text())
+        .catch(error => console.error('Error:', error));
+        this.todos = this.getActiveTodo();
     }
 
-    toggleTodo(id) {
+    async toggleTodo(id) {
         let todoIdx = this.todos.findIndex(t => t.id === id);
+        await fetch(`http://${config.development.host}:${config.development.port}/todos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.text())
+            .catch(error => console.error('Error:', error));
+        
         if (this.todos[todoIdx].isDone) {
             this.todos[todoIdx].markNotDone();
         } else {
             this.todos[todoIdx].markDone();
         }
-        fetch('http://localhost:3333/todos/id', {
-                method: 'put',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify([id])
-            }).then(response => response.json())
-            .then((json) => console.log(json));
     }
 
-    filterTodos(filter = 'all') {
+    filterTodos(filter) {
         if (filter === 'active') {
           return this.getActiveTodo();
         }
@@ -119,17 +129,25 @@ export default class TodoList {
         return this.todoList.filter((todo) => todo.isDone === false);
     }
 
-    todoFromServer(){
-        fetch('http://localhost:3333/todos')
-            .then(response => response.json())
-            .then(json => {
-                for (let todo of json.todos) {
-                    this.todos.push(new Todo(todo));
-                }
-                render();
+    async updateList(currentTodoId, prevTodoId) {
+        await fetch(`http://${config.development.host}:${config.development.port}/todos/${currentTodoId}/${prevTodoId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
             })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+            .then(response => response.text())
+            .catch(error => console.error('Error:', error));
+
+        let currentTodoIdx = this.todos.findIndex(t => t.id === currentTodoId);
+        let currentTodo = this.todos.splice(currentTodoIdx, 1);
+        console.log(currentTodo)
+        if (prevTodoId) {
+            let prevTodoIdx = this.todos.findIndex(t => t.id === prevTodoId);
+            console.log(prevTodoIdx);
+            this.todos.splice(prevTodoIdx + 1, 0, currentTodo[0]);
+        } else if (!prevTodoId) {
+            this.todos.unshift(currentTodo[0]);
+        }
     }
 }

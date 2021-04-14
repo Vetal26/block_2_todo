@@ -1,14 +1,14 @@
-var config = {
+export var config = {
   development: {
-    host: "todojs",
+    host: "localhost",
     port: "3333"
   },
   production: {
-    host: "todojs",
+    host: "localhost",
     port: "4444"
   },
   test: {
-    host: "todojs",
+    host: "localhost",
     port: "5555"
   }
 };
